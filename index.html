@@ -1,0 +1,358 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Southern Hub — Fashion</title>
+  <meta name="description" content="Southern Hub - Premium t-shirts & shirts. Modern responsive front-end demo with JS cart, filters, search and checkout mock." />
+  <style>
+    :root{
+      --bg:#0f1724; --card:#0b1220; --muted:#9aa4b2; --accent:#ff6b6b; --accent-2:#ffd166; --glass: rgba(255,255,255,0.04);
+      --max-width:1200px; --radius:14px;
+      --transition:300ms cubic-bezier(.2,.9,.2,1);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:linear-gradient(180deg,#071124 0%, #07162b 60%); color:#e6eef6; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+      padding:32px; display:flex; justify-content:center; font-size:16px;
+    }
+    .app{width:100%;max-width:var(--max-width)}header{display:flex;align-items:center;gap:20px;justify-content:space-between;margin-bottom:28px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:56px;height:56px;background:linear-gradient(135deg,var(--accent),var(--accent-2));border-radius:12px;display:grid;place-items:center;font-weight:700;color:#071124}
+h1{margin:0;font-size:20px;letter-spacing:0.6px}
+.tag{color:var(--muted);font-size:13px}
+
+.controls{display:flex;gap:12px;align-items:center}
+.search{background:var(--card);border:1px solid rgba(255,255,255,0.04);padding:10px 12px;border-radius:10px;display:flex;gap:8px;align-items:center}
+.search input{background:transparent;border:0;outline:0;color:inherit;width:220px}
+.btn{background:linear-gradient(90deg,var(--accent),#ff8b8b);border:0;padding:10px 14px;border-radius:10px;color:#071124;font-weight:600;cursor:pointer}
+.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px 10px;border-radius:10px;color:var(--muted);cursor:pointer}
+
+main{display:grid;grid-template-columns:280px 1fr;gap:20px}
+
+/* sidebar filters */
+.sidebar{background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);padding:18px;border-radius:12px}
+.sidebar h3{margin:0 0 12px 0}
+.filter-group{margin-bottom:16px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:8px 10px;border-radius:999px;background:var(--glass);cursor:pointer;font-size:14px}
+.chip.active{background:linear-gradient(90deg,var(--accent),#ff8b8b);color:#071124}
+
+/* product list */
+.product-area{display:flex;flex-direction:column;gap:16px}
+.toolbar{display:flex;justify-content:space-between;align-items:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+
+.card{background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);display:flex;flex-direction:column;gap:12px;transition:transform var(--transition);}
+.card:focus-within, .card:hover{transform:translateY(-6px)}
+.thumb{height:160px;border-radius:10px;display:grid;place-items:center;font-weight:700;font-size:18px}
+.meta{display:flex;justify-content:space-between;align-items:center}
+.price{font-weight:700}
+.muted{color:var(--muted);font-size:13px}
+
+.actions{display:flex;gap:8px}
+.add{flex:1;padding:8px;border-radius:8px;border:0;background:linear-gradient(90deg,#34d399,#10b981);color:#042014;cursor:pointer}
+.view{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--muted);cursor:pointer}
+
+/* cart drawer */
+.cart-drawer{position:fixed;right:20px;top:80px;background:linear-gradient(180deg,#061022,#07142a);padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);width:360px;max-height:70vh;overflow:auto;box-shadow:0 14px 40px rgba(3,6,14,0.7)}
+.cart-item{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px dashed rgba(255,255,255,0.03)}
+.qty{display:flex;gap:6px;align-items:center}
+.small{font-size:13px;color:var(--muted)}
+
+/* modal */
+.modal-backdrop{position:fixed;inset:0;background:linear-gradient(180deg, rgba(0,0,0,0.6), rgba(2,6,12,0.7));display:none;place-items:center;padding:24px}
+.modal{width:100%;max-width:880px;background:linear-gradient(180deg,#071424,#061020);padding:20px;border-radius:12px;border:1px solid rgba(255,255,255,0.04)}
+.modal.show{display:block}
+.modal-grid{display:grid;grid-template-columns:1fr 360px;gap:18px}
+
+footer{margin-top:28px;color:var(--muted);font-size:13px;text-align:center}
+
+/* responsive */
+@media (max-width:900px){main{grid-template-columns:1fr} .sidebar{order:2} .product-area{order:1} .cart-drawer{right:10px;width:calc(100% - 20px);top:auto;bottom:20px}}
+
+/* micro animations */
+.pulse{animation:pulse 2s infinite}
+@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.02)}100%{transform:scale(1)}}
+
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden>SH</div>
+        <div>
+          <h1>Southern Hub</h1>
+          <div class="tag">Premium tees & shirts — crafted for comfort</div>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="search" role="search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden><path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.5"/></svg>
+          <input id="q" placeholder="Search t-shirts, shirts, collections..." aria-label="Search products">
+        </div>
+        <button class="ghost" id="view-cart-btn" aria-controls="cart" aria-expanded="false">Cart (<span id="cart-count">0</span>)</button>
+        <button class="btn" id="checkout-btn">Checkout</button>
+      </div>
+    </header><main>
+  <aside class="sidebar" aria-label="filters">
+    <div class="filter-group">
+      <h3>Categories</h3>
+      <div class="chips" id="categories"></div>
+    </div>
+    <div class="filter-group">
+      <h3>Price</h3>
+      <div class="chips" id="prices">
+        <button class="chip" data-min="0" data-max="25">Under $25</button>
+        <button class="chip" data-min="25" data-max="50">$25 - $50</button>
+        <button class="chip" data-min="50" data-max="100">$50 - $100</button>
+        <button class="chip" data-min="0" data-max="10000">All</button>
+      </div>
+    </div>
+    <div class="filter-group">
+      <h3>Sort</h3>
+      <select id="sort">
+        <option value="featured">Featured</option>
+        <option value="price-asc">Price: Low to High</option>
+        <option value="price-desc">Price: High to Low</option>
+        <option value="alpha">A → Z</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <h3>Collections</h3>
+      <div class="chips" id="collections"></div>
+    </div>
+  </aside>
+
+  <section class="product-area">
+    <div class="toolbar">
+      <div class="small" id="results-summary">Showing 0 products</div>
+      <div class="small">Built with HTML • CSS • JS</div>
+    </div>
+
+    <div class="grid" id="grid" role="list"></div>
+
+  </section>
+</main>
+
+<footer>
+  © <span id="year"></span> Southern Hub — Demo storefront. For production, integrate a backend and payment gateway.
+</footer>
+
+<!-- cart drawer -->
+<aside id="cart" class="cart-drawer" aria-hidden="true" style="display:none">
+  <h3>Shopping Cart</h3>
+  <div id="cart-items"></div>
+  <div style="padding-top:12px;display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <div class="small">Subtotal</div>
+      <div id="subtotal" style="font-weight:800">$0.00</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="ghost" id="clear-cart">Clear</button>
+      <button class="btn" id="checkout-btn-2">Proceed</button>
+    </div>
+  </div>
+</aside>
+
+<!-- modal -->
+<div id="modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="modal" role="document">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h3 id="modal-title">Product</h3>
+      <button class="ghost" id="close-modal">Close</button>
+    </div>
+    <div class="modal-grid">
+      <div id="modal-media" style="border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:grid;place-items:center;min-height:320px">Image</div>
+      <div id="modal-right">
+        <div class="small" id="modal-desc"></div>
+        <div style="margin-top:12px;font-weight:800;font-size:18px" id="modal-price"></div>
+        <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+          <label class="small">Qty</label>
+          <input id="modal-qty" type="number" min="1" value="1" style="width:68px;padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:inherit">
+        </div>
+        <div style="margin-top:16px;display:flex;gap:8px">
+          <button class="add" id="modal-add">Add to cart</button>
+          <button class="view" id="modal-wishlist">☆ Wishlist</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  </div>  <script>
+    // --- Demo product catalog (would come from API/backend in production) ---
+    const PRODUCTS = [
+      {id:'s1',name:'Coastal Tee',category:'T-Shirt',collection:'Summer',price:22,desc:'Lightweight cotton tee with coastal print.'},
+      {id:'s2',name:'Sunset Polo',category:'Shirt',collection:'Resort',price:45,desc:'Soft polo with structured collar.'},
+      {id:'s3',name:'Breeze Overshirt',category:'Shirt',collection:'Autumn',price:62,desc:'Layering overshirt in breathable weave.'},
+      {id:'s4',name:'Minimal Tee',category:'T-Shirt',collection:'Essentials',price:18,desc:'Clean minimal tee in multiple colors.'},
+      {id:'s5',name:'Ridge Longsleeve',category:'T-Shirt',collection:'Winter',price:35,desc:'Warm longsleeve, soft jersey.'},
+      {id:'s6',name:'Harbor Shirt',category:'Shirt',collection:'Essentials',price:52,desc:'Everyday button-up with subtle pattern.'},
+      {id:'s7',name:'Graphic Tee — Wave',category:'T-Shirt',collection:'Limited',price:30,desc:'Signature wave print, limited run.'},
+      {id:'s8',name:'Linen Resort Shirt',category:'Shirt',collection:'Resort',price:78,desc:'Premium linen for warm climates.'}
+    ];
+
+    // helper to make attractive SVG placeholders as data URIs
+    function svgData(name, accent){
+      const bg = encodeURIComponent('linear-gradient(135deg,'+accent+',#ffffff22)');
+      const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='800' height='600'><defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='1'><stop offset='0' stop-color='${accent}'/><stop offset='1' stop-color='#ffffff22' /></linearGradient></defs><rect width='100%' height='100%' fill='url(#g)' rx='20'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#042028' font-family='Arial' font-size='40'>${name}</text></svg>`;
+      return 'data:image/svg+xml;utf8,'+encodeURIComponent(svg);
+    }
+
+    // state
+    let state = { q:'', category:null, price:[0,99999], sort:'featured', collection:null, products:PRODUCTS.slice() };
+    let CART = JSON.parse(localStorage.getItem('sh-cart')||'{}');
+
+    // UI refs
+    const grid = document.getElementById('grid');
+    const qInput = document.getElementById('q');
+    const categoriesEl = document.getElementById('categories');
+    const collectionsEl = document.getElementById('collections');
+    const resultsSummary = document.getElementById('results-summary');
+    const cartCount = document.getElementById('cart-count');
+    const cartBtn = document.getElementById('view-cart-btn');
+    const cartDrawer = document.getElementById('cart');
+    const cartItemsEl = document.getElementById('cart-items');
+    const subtotalEl = document.getElementById('subtotal');
+    const modalBackdrop = document.getElementById('modal-backdrop');
+    const modalTitle = document.getElementById('modal-title');
+    const modalDesc = document.getElementById('modal-desc');
+    const modalMedia = document.getElementById('modal-media');
+    const modalPrice = document.getElementById('modal-price');
+    const modalQty = document.getElementById('modal-qty');
+    const modalAdd = document.getElementById('modal-add');
+    const yearEl = document.getElementById('year');
+
+    yearEl.textContent = new Date().getFullYear();
+
+    // build category chips dynamically
+    const uniqueCats = Array.from(new Set(PRODUCTS.map(p=>p.category)));
+    uniqueCats.unshift('All');
+    uniqueCats.forEach(c=>{
+      const btn = document.createElement('button'); btn.className='chip'; btn.textContent=c; btn.dataset.cat=c;
+      categoriesEl.appendChild(btn);
+    });
+
+    const uniqueCols = Array.from(new Set(PRODUCTS.map(p=>p.collection)));
+    uniqueCols.forEach(c=>{
+      const btn = document.createElement('button'); btn.className='chip'; btn.textContent=c; btn.dataset.collection=c;
+      collectionsEl.appendChild(btn);
+    });
+
+    // event bindings
+    qInput.addEventListener('input', e=>{ state.q = e.target.value.toLowerCase(); render(); });
+    document.getElementById('prices').addEventListener('click', e=>{ if(!e.target.matches('.chip')) return; const min=+e.target.dataset.min; const max=+e.target.dataset.max; state.price=[min,max]; Array.from(document.querySelectorAll('#prices .chip')).forEach(c=>c.classList.remove('active')); e.target.classList.add('active'); render(); });
+    document.getElementById('sort').addEventListener('change', e=>{ state.sort=e.target.value; render(); });
+
+    categoriesEl.addEventListener('click', e=>{ if(!e.target.matches('.chip')) return; Array.from(categoriesEl.querySelectorAll('.chip')).forEach(c=>c.classList.remove('active')); e.target.classList.add('active'); const cat = e.target.dataset.cat; state.category = (cat==='All'?null:cat); render(); });
+    collectionsEl.addEventListener('click', e=>{ if(!e.target.matches('.chip')) return; Array.from(collectionsEl.querySelectorAll('.chip')).forEach(c=>c.classList.remove('active')); e.target.classList.add('active'); const col = e.target.dataset.collection; state.collection = col; render(); });
+
+    // render product grid
+    function render(){
+      const filtered = PRODUCTS.filter(p=>{
+        if(state.category && p.category !== state.category) return false;
+        if(state.collection && p.collection !== state.collection) return false;
+        if(p.price < state.price[0] || p.price > state.price[1]) return false;
+        if(state.q && !(p.name.toLowerCase().includes(state.q) || p.desc.toLowerCase().includes(state.q))) return false;
+        return true;
+      });
+
+      // sort
+      if(state.sort==='price-asc') filtered.sort((a,b)=>a.price-b.price);
+      else if(state.sort==='price-desc') filtered.sort((a,b)=>b.price-a.price);
+      else if(state.sort==='alpha') filtered.sort((a,b)=>a.name.localeCompare(b.name));
+
+      grid.innerHTML='';
+      filtered.forEach(p=>{
+        const card = document.createElement('article'); card.className='card'; card.tabIndex=0; card.setAttribute('role','listitem');
+        const thumb = document.createElement('div'); thumb.className='thumb'; thumb.style.backgroundImage = `url(${svgData(p.name,'#ffd166')})`; thumb.style.backgroundSize='cover'; thumb.style.color='#042028'; thumb.textContent='';
+        const title = document.createElement('div'); title.innerHTML=`<div style="font-weight:700">${p.name}</div><div class='muted'>${p.collection} • ${p.category}</div>`;
+        const meta = document.createElement('div'); meta.className='meta'; meta.innerHTML = `<div class='price'>\$${p.price.toFixed(2)}</div><div class='muted'>Free returns</div>`;
+        const actions = document.createElement('div'); actions.className='actions';
+        const addBtn = document.createElement('button'); addBtn.className='add'; addBtn.textContent='Add'; addBtn.addEventListener('click', ()=>{addToCart(p.id,1)});
+        const viewBtn = document.createElement('button'); viewBtn.className='view'; viewBtn.textContent='View'; viewBtn.addEventListener('click', ()=>{openModal(p)});
+        actions.appendChild(addBtn); actions.appendChild(viewBtn);
+        card.appendChild(thumb); card.appendChild(title); card.appendChild(meta); card.appendChild(actions);
+        grid.appendChild(card);
+      });
+
+      resultsSummary.textContent = `Showing ${filtered.length} product${filtered.length!==1?'s':''}`;
+      updateCartUI();
+    }
+
+    // modal
+    let currentModalProduct = null;
+    function openModal(p){ currentModalProduct=p; modalBackdrop.style.display='grid'; modalBackdrop.setAttribute('aria-hidden','false'); modalTitle.textContent=p.name; modalDesc.textContent=p.desc; modalPrice.textContent = `$${p.price.toFixed(2)}`; modalMedia.innerHTML = `<img src='${svgData(p.name,'#ff6b6b')}' alt='${p.name}' style='width:100%;height:auto;border-radius:8px'>`; modalQty.value=1; }
+    document.getElementById('close-modal').addEventListener('click', closeModal);
+    modalBackdrop.addEventListener('click', e=>{ if(e.target===modalBackdrop) closeModal(); });
+    function closeModal(){ modalBackdrop.style.display='none'; modalBackdrop.setAttribute('aria-hidden','true'); }
+    modalAdd.addEventListener('click', ()=>{ if(!currentModalProduct) return; const qty=+modalQty.value||1; addToCart(currentModalProduct.id,qty); closeModal(); });
+
+    // cart functions
+    function addToCart(id,qty){ CART[id] = (CART[id]||0)+qty; persistCart(); updateCartUI(); pulseCart(); }
+    function removeFromCart(id){ delete CART[id]; persistCart(); updateCartUI(); }
+    function setQty(id,qty){ if(qty<=0) removeFromCart(id); else { CART[id]=qty; persistCart(); updateCartUI(); } }
+    function persistCart(){ localStorage.setItem('sh-cart', JSON.stringify(CART)); }
+
+    function updateCartUI(){
+      const ids = Object.keys(CART);
+      cartCount.textContent = ids.reduce((s,i)=>s + CART[i], 0);
+      cartItemsEl.innerHTML='';
+      let total=0;
+      ids.forEach(id=>{
+        const p = PRODUCTS.find(x=>x.id===id);
+        if(!p) return;
+        const qty = CART[id];
+        total += p.price * qty;
+        const node = document.createElement('div'); node.className='cart-item';
+        node.innerHTML = `
+          <div style='width:56px;height:56px;border-radius:8px;overflow:hidden;background:#071424;display:grid;place-items:center'><img src='${svgData(p.name,'#ffd166')}' alt='' style='width:80%;height:auto'></div>
+          <div style='flex:1'>
+            <div style='font-weight:700'>${p.name}</div>
+            <div class='small'>\$${p.price.toFixed(2)} • ${p.collection}</div>
+          </div>
+        `;
+        const controls = document.createElement('div'); controls.style.textAlign='right';
+        controls.innerHTML = `<div class='qty'><button class='ghost' data-action='dec' aria-label='decrease'>-</button><div style='padding:6px 10px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.03)'>${qty}</div><button class='ghost' data-action='inc' aria-label='increase'>+</button></div><div class='small' style='margin-top:6px'>\$${(p.price*qty).toFixed(2)}</div><div style='margin-top:8px'><button class='ghost' data-action='remove'>Remove</button></div>`;
+        node.appendChild(controls);
+        cartItemsEl.appendChild(node);
+
+        controls.addEventListener('click', (e)=>{
+          const a = e.target.dataset.action;
+          if(a==='inc') setQty(id,CART[id]+1);
+          if(a==='dec') setQty(id,CART[id]-1);
+          if(a==='remove') removeFromCart(id);
+        });
+      });
+      subtotalEl.textContent = `$${total.toFixed(2)}`;
+      document.getElementById('cart').style.display = ids.length ? 'block' : 'none';
+    }
+
+    document.getElementById('clear-cart').addEventListener('click', ()=>{ CART={}; persistCart(); updateCartUI(); });
+    cartBtn.addEventListener('click', ()=>{ const open = cartDrawer.style.display!=='none'; cartDrawer.style.display = open ? 'none' : (Object.keys(CART).length? 'block':'block'); cartBtn.setAttribute('aria-expanded', !open); });
+
+    function pulseCart(){ cartBtn.classList.add('pulse'); setTimeout(()=>cartBtn.classList.remove('pulse'),800); }
+
+    // checkout demo
+    document.getElementById('checkout-btn').addEventListener('click', ()=>{ window.alert('This is a demo. Integrate payment APIs for real checkout.'); });
+    document.getElementById('checkout-btn-2').addEventListener('click', ()=>{ window.alert('Proceeding to checkout (demo).'); });
+
+    // keyboard accessibility: press / to focus search
+    window.addEventListener('keydown', e=>{ if(e.key==='/' && document.activeElement!==qInput){ e.preventDefault(); qInput.focus(); } if(e.key==='Escape'){ closeModal(); } });
+
+    // initial render
+    render();
+
+    // small progressive enhancement: register service worker (won't register in this sandbox but code is ready)
+    if('serviceWorker' in navigator){ navigator.serviceWorker && navigator.serviceWorker.register('/sw.js').catch(()=>{}); }
+
+    // simple animation: ensure first price chip active
+    document.querySelector('#prices .chip').classList.add('active');
+  </script></body>
+</html>
